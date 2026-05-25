@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react';
+import { Bell, BellOff } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { requestNotificationPermission } from '@/hooks/useNotifications';
 
 export default function Settings() {
   const settings = useAppStore((s) => s.settings);
@@ -6,6 +9,28 @@ export default function Settings() {
   const setWeekendsDifferent = useAppStore((s) => s.setWeekendsDifferent);
   const setWeekendBedtime = useAppStore((s) => s.setWeekendBedtime);
   const setNotificationsEnabled = useAppStore((s) => s.setNotificationsEnabled);
+
+  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(
+    () =>
+      typeof Notification === 'undefined'
+        ? 'unsupported'
+        : Notification.permission,
+  );
+
+  // Keep the local state fresh if the user changes the OS-level permission.
+  useEffect(() => {
+    const onFocus = () => {
+      if (typeof Notification !== 'undefined') setPermission(Notification.permission);
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
+
+  const onRequest = async () => {
+    const result = await requestNotificationPermission();
+    setPermission(result);
+    if (result === 'granted') setNotificationsEnabled(true);
+  };
 
   return (
     <section className="px-6 pt-12 max-w-md mx-auto space-y-6">
@@ -44,7 +69,7 @@ export default function Settings() {
         )}
       </div>
 
-      <div className="rounded-2xl bg-night-800/70 border border-night-700 p-4">
+      <div className="rounded-2xl bg-night-800/70 border border-night-700 p-4 space-y-3">
         <label className="flex items-center justify-between">
           <div>
             <div>Bedtime notification</div>
@@ -59,6 +84,7 @@ export default function Settings() {
             className="w-5 h-5 accent-moon-500"
           />
         </label>
+        <PermissionRow permission={permission} onRequest={onRequest} />
       </div>
 
       <div className="rounded-2xl bg-night-800/70 border border-night-700 p-4">
@@ -69,5 +95,50 @@ export default function Settings() {
         </div>
       </div>
     </section>
+  );
+}
+
+function PermissionRow({
+  permission,
+  onRequest,
+}: {
+  permission: NotificationPermission | 'unsupported';
+  onRequest: () => void;
+}) {
+  if (permission === 'granted') {
+    return (
+      <div className="flex items-center gap-2 text-xs text-moon-300">
+        <Bell size={12} />
+        Notifications allowed
+      </div>
+    );
+  }
+  if (permission === 'denied') {
+    return (
+      <div className="flex items-start gap-2 text-xs text-ember-400">
+        <BellOff size={12} className="mt-0.5 shrink-0" />
+        <span>
+          Notifications blocked. Enable in your browser's site settings to get
+          the T-60 and T-0 pings.
+        </span>
+      </div>
+    );
+  }
+  if (permission === 'unsupported') {
+    return (
+      <div className="text-xs text-night-500">
+        Notifications aren't supported in this browser.
+      </div>
+    );
+  }
+  // 'default' — never asked
+  return (
+    <button
+      type="button"
+      onClick={onRequest}
+      className="text-xs text-moon-300 underline underline-offset-2 hover:text-moon-200"
+    >
+      Allow notifications
+    </button>
   );
 }

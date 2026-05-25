@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useNow } from '@/hooks/useNow';
 import { useAutoDim } from '@/hooks/useAutoDim';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   selectBedtimeFor,
   selectRoutineMinutes,
@@ -25,6 +26,11 @@ export default function Home() {
   const isTomorrow = bed.getDate() !== now.getDate();
 
   useAutoDim(msToBedtime);
+  useNotifications({
+    enabled: settings.notificationsEnabled,
+    bedtimeHHMM: bedtimeStr,
+    windDownMinutes: settings.windDownMinutes,
+  });
 
   return (
     <section className="relative min-h-[100dvh] flex flex-col items-center justify-center px-6 text-center">

@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Home, ListChecks, Moon, Settings as SettingsIcon } from 'lucide-react';
+import { InstallPrompt } from './InstallPrompt';
 
 const navItems = [
   { to: '/', label: 'Home', icon: Home },
@@ -19,6 +20,8 @@ export default function Layout() {
       <main className="flex-1 overflow-y-auto no-scrollbar pb-24">
         <Outlet />
       </main>
+
+      {!hideChrome && <InstallPrompt />}
 
       {!hideChrome && (
         <nav
