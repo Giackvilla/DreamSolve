@@ -5,6 +5,7 @@ import Player from './pages/Player';
 import Editor from './pages/Editor';
 import Settings from './pages/Settings';
 import MorningLog from './pages/MorningLog';
+import Bedtime from './pages/Bedtime';
 
 const router = createBrowserRouter(
   [
@@ -14,6 +15,7 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <Home /> },
         { path: 'player', element: <Player /> },
+        { path: 'bedtime', element: <Bedtime /> },
         { path: 'editor', element: <Editor /> },
         { path: 'settings', element: <Settings /> },
         { path: 'morning', element: <MorningLog /> },

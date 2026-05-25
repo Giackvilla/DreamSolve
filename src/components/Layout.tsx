@@ -10,8 +10,9 @@ const navItems = [
 
 export default function Layout() {
   const loc = useLocation();
-  // Hide chrome during full-screen player.
-  const hideChrome = loc.pathname.startsWith('/player');
+  // Hide chrome during full-screen player and bedtime screens.
+  const hideChrome =
+    loc.pathname.startsWith('/player') || loc.pathname.startsWith('/bedtime');
 
   return (
     <div className="min-h-full flex flex-col bg-night-glow text-night-50">
