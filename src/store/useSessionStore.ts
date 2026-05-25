@@ -21,6 +21,7 @@ type SessionState = {
   resume: () => void;
   skip: () => void;
   advance: () => void;
+  jumpTo: (targetIndex: number) => void;
   complete: () => void;
   reset: () => void;
 };
@@ -74,6 +75,27 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       pausedAt: null,
       accumulatedPauseMs: 0,
       // If we were paused when skipping, resume into the next step.
+      status: 'playing',
+    });
+  },
+
+  /**
+   * Jump forward to `targetIndex`. Going backwards is a no-op in v1 — the
+   * timeline is one-way; if you want to "redo" a step, just restart the
+   * session. `targetIndex >= totalSteps` completes the session.
+   */
+  jumpTo: (targetIndex) => {
+    const s = get();
+    if (targetIndex <= s.stepIndex) return;
+    if (targetIndex >= s.totalSteps) {
+      set({ status: 'completed' });
+      return;
+    }
+    set({
+      stepIndex: targetIndex,
+      stepStartedAt: Date.now(),
+      pausedAt: null,
+      accumulatedPauseMs: 0,
       status: 'playing',
     });
   },
