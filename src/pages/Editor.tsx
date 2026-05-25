@@ -1,32 +1,265 @@
+import { useState } from 'react';
+import {
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { selectRoutineMinutes, useAppStore } from '@/store/useAppStore';
+import type { RoutineStep } from '@/store/types';
 
-// Placeholder for P1 — drag-sortable list, add/edit/delete steps lands there.
+const TARGET_MIN = 60;
+
 export default function Editor() {
   const routine = useAppStore((s) => s.routine);
   const total = useAppStore(selectRoutineMinutes);
+  const addStep = useAppStore((s) => s.addStep);
+  const removeStep = useAppStore((s) => s.removeStep);
+  const updateStep = useAppStore((s) => s.updateStep);
+  const reorderSteps = useAppStore((s) => s.reorderSteps);
+  const resetRoutine = useAppStore((s) => s.resetRoutine);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const onDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const ids = routine.map((r) => r.id);
+    const next = arrayMove(ids, ids.indexOf(active.id as string), ids.indexOf(over.id as string));
+    reorderSteps(next);
+  };
+
+  const handleAdd = () => {
+    const id = `tmp_${Date.now()}`;
+    addStep({ title: 'New step', minutes: 5 });
+    // The store assigns a real id; reselect the freshly-added step.
+    setTimeout(() => {
+      const latest = useAppStore.getState().routine.at(-1);
+      if (latest) setEditingId(latest.id);
+    }, 0);
+    return id;
+  };
+
+  const overBudget = total > TARGET_MIN;
+
   return (
-    <section className="px-6 pt-12 max-w-md mx-auto">
+    <section className="px-6 pt-10 pb-8 max-w-md mx-auto">
       <h1 className="text-2xl font-light mb-1">Tonight's routine</h1>
-      <p className="text-sm text-night-500 mb-6">
-        {total} / 60 min · {routine.length} steps
+      <p className="text-sm text-night-500 mb-4">
+        Drag to reorder · tap a step to edit
       </p>
-      <ul className="space-y-2">
-        {routine.map((r, i) => (
-          <li
-            key={r.id}
-            className="rounded-2xl bg-night-800/70 border border-night-700 px-4 py-3 flex items-center justify-between"
+
+      <BudgetBar total={total} target={TARGET_MIN} overBudget={overBudget} />
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={onDragEnd}
+      >
+        <SortableContext
+          items={routine.map((r) => r.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <ul className="space-y-2 mt-5">
+            {routine.map((step, i) => (
+              <SortableRow
+                key={step.id}
+                index={i}
+                step={step}
+                editing={editingId === step.id}
+                onStartEdit={() => setEditingId(step.id)}
+                onStopEdit={() => setEditingId(null)}
+                onChange={(patch) => updateStep(step.id, patch)}
+                onDelete={() => {
+                  if (editingId === step.id) setEditingId(null);
+                  removeStep(step.id);
+                }}
+              />
+            ))}
+          </ul>
+        </SortableContext>
+      </DndContext>
+
+      <button
+        type="button"
+        onClick={handleAdd}
+        className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl border border-dashed border-night-600 text-night-300 py-3 hover:text-moon-300 hover:border-moon-500/50 transition"
+      >
+        <Plus size={18} strokeWidth={1.8} />
+        Add step
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          if (confirm('Reset routine to the default 60-minute wind-down?')) {
+            resetRoutine();
+            setEditingId(null);
+          }
+        }}
+        className="mt-6 w-full flex items-center justify-center gap-2 text-xs text-night-500 hover:text-night-300 transition"
+      >
+        <RotateCcw size={12} />
+        Reset to defaults
+      </button>
+    </section>
+  );
+}
+
+function BudgetBar({
+  total,
+  target,
+  overBudget,
+}: {
+  total: number;
+  target: number;
+  overBudget: boolean;
+}) {
+  const pct = Math.min(100, (total / target) * 100);
+  return (
+    <div>
+      <div className="flex items-baseline justify-between text-sm">
+        <span className={overBudget ? 'text-ember-400' : 'text-night-50'}>
+          <span className="tabular-nums">{total}</span> / {target} min
+        </span>
+        {overBudget && (
+          <span className="text-xs text-ember-400">
+            {total - target}m over — trim a step
+          </span>
+        )}
+      </div>
+      <div className="mt-2 h-1.5 rounded-full bg-night-700 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${
+            overBudget ? 'bg-ember-500' : 'bg-moon-500'
+          }`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+type RowProps = {
+  index: number;
+  step: RoutineStep;
+  editing: boolean;
+  onStartEdit: () => void;
+  onStopEdit: () => void;
+  onChange: (patch: Partial<RoutineStep>) => void;
+  onDelete: () => void;
+};
+
+function SortableRow({
+  index,
+  step,
+  editing,
+  onStartEdit,
+  onStopEdit,
+  onChange,
+  onDelete,
+}: RowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: step.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.7 : 1,
+    zIndex: isDragging ? 30 : 'auto',
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`rounded-2xl border bg-night-800/70 ${
+        editing ? 'border-moon-500/60' : 'border-night-700'
+      } ${isDragging ? 'shadow-lg shadow-black/40' : ''}`}
+    >
+      <div className="flex items-stretch">
+        <button
+          type="button"
+          aria-label="Drag to reorder"
+          className="px-2 flex items-center text-night-500 touch-none cursor-grab active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical size={18} />
+        </button>
+
+        {editing ? (
+          <div className="flex-1 py-2 pr-2 flex items-center gap-2">
+            <input
+              autoFocus
+              value={step.title}
+              onChange={(e) => onChange({ title: e.target.value })}
+              onBlur={onStopEdit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onStopEdit();
+              }}
+              className="flex-1 bg-night-900 border border-night-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-moon-500/60"
+            />
+            <input
+              type="number"
+              min={1}
+              max={120}
+              value={step.minutes}
+              onChange={(e) =>
+                onChange({ minutes: Math.max(1, Number(e.target.value) || 1) })
+              }
+              onBlur={onStopEdit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onStopEdit();
+              }}
+              className="w-16 bg-night-900 border border-night-700 rounded-lg px-2 py-2 text-sm tabular-nums text-right focus:outline-none focus:border-moon-500/60"
+            />
+            <span className="text-night-500 text-sm">m</span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onStartEdit}
+            className="flex-1 flex items-center justify-between py-3 pr-2 text-left"
           >
             <div className="flex items-center gap-3">
-              <span className="text-night-500 text-sm w-6 tabular-nums">{i + 1}</span>
-              <span>{r.title}</span>
+              <span className="text-night-500 text-sm w-5 tabular-nums">
+                {index + 1}
+              </span>
+              <span>{step.title}</span>
             </div>
-            <span className="text-moon-300 text-sm tabular-nums">{r.minutes}m</span>
-          </li>
-        ))}
-      </ul>
-      <p className="text-xs text-night-500 mt-6">
-        Add / reorder / delete arrives in phase P1.
-      </p>
-    </section>
+            <span className="text-moon-300 text-sm tabular-nums">{step.minutes}m</span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          aria-label="Delete step"
+          onClick={onDelete}
+          className="px-3 flex items-center text-night-500 hover:text-ember-400 transition"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </li>
   );
 }
