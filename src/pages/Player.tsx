@@ -11,6 +11,7 @@ import { useNow } from '@/hooks/useNow';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { formatCountdown, nextBedtime } from '@/lib/time';
 import { BreathingCircle } from '@/components/BreathingCircle';
+import { StepIcon } from '@/lib/icons';
 
 export default function Player() {
   const navigate = useNavigate();
@@ -127,9 +128,14 @@ export default function Player() {
           transition={{ duration: 0.35 }}
           className="flex flex-col items-center"
         >
-          <p className="uppercase tracking-[0.3em] text-xs text-moon-300/80 mb-6">
+          <p className="uppercase tracking-[0.3em] text-xs text-moon-300/80 mb-4">
             Step {session.stepIndex + 1}
           </p>
+          {!isBreathing && (
+            <div className="w-12 h-12 rounded-full bg-night-800/80 border border-night-700 grid place-items-center text-moon-300 mb-4">
+              <StepIcon iconKey={step.icon} size={20} />
+            </div>
+          )}
           <h1 className="text-2xl font-light max-w-xs">{step.title}</h1>
           <div className="mt-10 text-7xl sm:text-8xl font-light tabular-nums">
             {formatCountdown(remaining)}

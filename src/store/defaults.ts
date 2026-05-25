@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS: BedtimeSettings = {
 export const DEFAULT_ROUTINE: RoutineStep[] = [
   { id: 'r1', title: 'Tidy up · set out tomorrow', minutes: 10, icon: 'sparkles' },
   { id: 'r2', title: 'Dim lights · phone on charger', minutes: 5, icon: 'lamp' },
-  { id: 'r3', title: 'Shower · skincare', minutes: 15, icon: 'droplets' },
+  { id: 'r3', title: 'Shower · skincare', minutes: 15, icon: 'bath' },
   { id: 'r4', title: 'Stretch · light yoga', minutes: 10, icon: 'activity' },
   { id: 'r5', title: 'Read or journal', minutes: 10, icon: 'book-open' },
   { id: 'r6', title: 'Breathing (4-7-8)', minutes: 10, icon: 'wind' },

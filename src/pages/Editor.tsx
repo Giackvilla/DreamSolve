@@ -20,6 +20,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { selectRoutineMinutes, useAppStore } from '@/store/useAppStore';
 import type { RoutineStep } from '@/store/types';
+import { StepIcon, type IconKey } from '@/lib/icons';
+import { AddStepSheet, IconPicker } from '@/components/AddStepSheet';
 
 const TARGET_MIN = 60;
 
@@ -33,6 +35,7 @@ export default function Editor() {
   const resetRoutine = useAppStore((s) => s.resetRoutine);
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -48,18 +51,8 @@ export default function Editor() {
     reorderSteps(next);
   };
 
-  const handleAdd = () => {
-    const id = `tmp_${Date.now()}`;
-    addStep({ title: 'New step', minutes: 5 });
-    // The store assigns a real id; reselect the freshly-added step.
-    setTimeout(() => {
-      const latest = useAppStore.getState().routine.at(-1);
-      if (latest) setEditingId(latest.id);
-    }, 0);
-    return id;
-  };
-
   const overBudget = total > TARGET_MIN;
+  const remainingBudget = TARGET_MIN - total;
 
   return (
     <section className="px-6 pt-10 pb-8 max-w-md mx-auto">
@@ -99,14 +92,27 @@ export default function Editor() {
         </SortableContext>
       </DndContext>
 
-      <button
-        type="button"
-        onClick={handleAdd}
-        className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl border border-dashed border-night-600 text-night-300 py-3 hover:text-moon-300 hover:border-moon-500/50 transition"
-      >
-        <Plus size={18} strokeWidth={1.8} />
-        Add step
-      </button>
+      {adding ? (
+        <div className="mt-3">
+          <AddStepSheet
+            remainingMinutes={remainingBudget}
+            onCancel={() => setAdding(false)}
+            onCreate={(draft) => {
+              addStep(draft);
+              setAdding(false);
+            }}
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl border border-dashed border-night-600 text-night-300 py-3 hover:text-moon-300 hover:border-moon-500/50 transition"
+        >
+          <Plus size={18} strokeWidth={1.8} />
+          Add step
+        </button>
+      )}
 
       <button
         type="button"
@@ -114,6 +120,7 @@ export default function Editor() {
           if (confirm('Reset routine to the default 60-minute wind-down?')) {
             resetRoutine();
             setEditingId(null);
+            setAdding(false);
           }
         }}
         className="mt-6 w-full flex items-center justify-center gap-2 text-xs text-night-500 hover:text-night-300 transition"
@@ -208,32 +215,43 @@ function SortableRow({
         </button>
 
         {editing ? (
-          <div className="flex-1 py-2 pr-2 flex items-center gap-2">
-            <input
-              autoFocus
-              value={step.title}
-              onChange={(e) => onChange({ title: e.target.value })}
-              onBlur={onStopEdit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') onStopEdit();
-              }}
-              className="flex-1 bg-night-900 border border-night-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-moon-500/60"
+          <div className="flex-1 py-3 pr-2 space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                autoFocus
+                value={step.title}
+                onChange={(e) => onChange({ title: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onStopEdit();
+                }}
+                className="flex-1 bg-night-900 border border-night-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-moon-500/60"
+              />
+              <input
+                type="number"
+                min={1}
+                max={120}
+                value={step.minutes}
+                onChange={(e) =>
+                  onChange({ minutes: Math.max(1, Number(e.target.value) || 1) })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onStopEdit();
+                }}
+                className="w-16 bg-night-900 border border-night-700 rounded-lg px-2 py-2 text-sm tabular-nums text-right focus:outline-none focus:border-moon-500/60"
+              />
+              <span className="text-night-500 text-sm">m</span>
+            </div>
+            <IconPicker
+              value={(step.icon as IconKey) || 'list-checks'}
+              onChange={(icon) => onChange({ icon })}
             />
-            <input
-              type="number"
-              min={1}
-              max={120}
-              value={step.minutes}
-              onChange={(e) =>
-                onChange({ minutes: Math.max(1, Number(e.target.value) || 1) })
-              }
-              onBlur={onStopEdit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') onStopEdit();
-              }}
-              className="w-16 bg-night-900 border border-night-700 rounded-lg px-2 py-2 text-sm tabular-nums text-right focus:outline-none focus:border-moon-500/60"
-            />
-            <span className="text-night-500 text-sm">m</span>
+            <button
+              type="button"
+              onClick={onStopEdit}
+              className="w-full text-xs text-moon-300 hover:text-moon-200"
+            >
+              Done editing
+            </button>
           </div>
         ) : (
           <button
@@ -241,13 +259,18 @@ function SortableRow({
             onClick={onStartEdit}
             className="flex-1 flex items-center justify-between py-3 pr-2 text-left"
           >
-            <div className="flex items-center gap-3">
-              <span className="text-night-500 text-sm w-5 tabular-nums">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-night-500 text-sm w-5 tabular-nums shrink-0">
                 {index + 1}
               </span>
-              <span>{step.title}</span>
+              <span className="shrink-0 w-8 h-8 rounded-full bg-night-700/60 grid place-items-center text-moon-300">
+                <StepIcon iconKey={step.icon} size={14} />
+              </span>
+              <span className="truncate">{step.title}</span>
             </div>
-            <span className="text-moon-300 text-sm tabular-nums">{step.minutes}m</span>
+            <span className="text-moon-300 text-sm tabular-nums ml-2 shrink-0">
+              {step.minutes}m
+            </span>
           </button>
         )}
 
