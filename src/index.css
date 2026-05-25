@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Adjusted live based on minutes-to-bedtime. 1 = full, 0.4 = dim warm. */
+  --ui-brightness: 1;
+  --ui-warmth: 0;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: #0b0b14;
+  color: #e5e7f0;
+  font-family: system-ui, -apple-system, 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+}
+
+#root {
+  filter: brightness(var(--ui-brightness)) sepia(var(--ui-warmth));
+  transition: filter 1.2s ease-out;
+}
+
+/* Soft radial glow used on the home screen */
+.bg-night-glow {
+  background:
+    radial-gradient(60% 50% at 50% 20%, rgba(139, 92, 246, 0.18) 0%, transparent 60%),
+    radial-gradient(80% 60% at 50% 100%, rgba(124, 58, 237, 0.08) 0%, transparent 70%),
+    #0b0b14;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbars but keep scrollability (mobile-first) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
