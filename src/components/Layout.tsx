@@ -62,7 +62,9 @@ export default function Layout() {
 
   return (
     <div className="min-h-full flex flex-col bg-night-glow text-night-50">
-      <main className="flex-1 overflow-y-auto no-scrollbar pb-24">
+      {/* dimmable wraps only the content; keeping the filter off the nav
+          ensures `position: fixed` stays anchored to the viewport. */}
+      <main className="dimmable flex-1 overflow-y-auto no-scrollbar pb-32">
         <Outlet />
       </main>
 

@@ -24,7 +24,11 @@ body {
   overscroll-behavior: none;
 }
 
-#root {
+/* Auto-dim is applied to .dimmable (the Layout content wrapper), NOT to
+   #root. A `filter` on #root would make it the containing block for all
+   `position: fixed` descendants — that's why the bottom nav was anchoring
+   to #root instead of the viewport. */
+.dimmable {
   filter: brightness(var(--ui-brightness)) sepia(var(--ui-warmth));
   transition: filter 1.2s ease-out;
 }
