@@ -1,8 +1,19 @@
+/**
+ * Optional `practice` payload on a step. When undefined the player renders
+ * the v1 generic countdown — backwards-compatible by design. See FUTURE.md
+ * for the architectural overview.
+ */
+export type Practice =
+  | { kind: 'breathing'; pattern: 'cyclic-sigh' | 'coherent' | 'box' | '4-7-8' }
+  | { kind: 'shuffle' }
+  | { kind: 'input'; preset: 'worry' | 'todo' | 'gratitude' };
+
 export type RoutineStep = {
   id: string;
   title: string;
   minutes: number;
   icon?: string;
+  practice?: Practice;
 };
 
 export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';

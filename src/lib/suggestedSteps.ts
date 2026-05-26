@@ -1,4 +1,5 @@
 import type { IconKey } from './icons';
+import type { Practice } from '@/store/types';
 
 export type SuggestedStep = {
   title: string;
@@ -6,6 +7,9 @@ export type SuggestedStep = {
   icon: IconKey;
   /** One-line "why" — surfaced as a tooltip in the picker. */
   why: string;
+  /** Optional guided-practice payload — when present, the player renders the
+   *  matching custom UI instead of the generic countdown. */
+  practice?: Practice;
 };
 
 /**
@@ -56,6 +60,42 @@ export const SUGGESTED_STEPS: SuggestedStep[] = [
     minutes: 5,
     icon: 'wind',
     why: 'Activates the parasympathetic system; pairs with the pulsing-circle UI.',
+    practice: { kind: 'breathing', pattern: '4-7-8' },
+  },
+  {
+    title: 'Cognitive shuffle',
+    minutes: 10,
+    icon: 'brain',
+    why: 'Random neutral words break rumination and mimic sleep-onset imagery.',
+    practice: { kind: 'shuffle' },
+  },
+  {
+    title: 'Constructive worry',
+    minutes: 5,
+    icon: 'pen-tool',
+    why: 'Move worries onto paper with a next step — quiets midnight rumination.',
+    practice: { kind: 'input', preset: 'worry' },
+  },
+  {
+    title: 'Tomorrow’s to-do',
+    minutes: 5,
+    icon: 'list-checks',
+    why: 'PSG-confirmed: writing tomorrow’s list shortens sleep onset.',
+    practice: { kind: 'input', preset: 'todo' },
+  },
+  {
+    title: 'Cyclic sighing',
+    minutes: 5,
+    icon: 'wind',
+    why: 'Two-stage inhale + long exhale — strongest 2023 RCT for acute calm.',
+    practice: { kind: 'breathing', pattern: 'cyclic-sigh' },
+  },
+  {
+    title: 'Coherent breathing',
+    minutes: 5,
+    icon: 'wind',
+    why: '~5.5 breaths/min sine — biggest non-pharma HRV bump.',
+    practice: { kind: 'breathing', pattern: 'coherent' },
   },
   {
     title: 'Meditate',

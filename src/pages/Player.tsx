@@ -8,6 +8,7 @@ import { useNow } from '@/hooks/useNow';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import { formatCountdown, nextBedtime } from '@/lib/time';
 import { BreathingCircle } from '@/components/BreathingCircle';
+import { ShuffleStep } from '@/components/ShuffleStep';
 import { StepIcon } from '@/lib/icons';
 import type { RoutineStep } from '@/store/types';
 
@@ -81,7 +82,10 @@ export default function Player() {
   );
   const pct = 1 - remaining / (step.minutes * 60_000);
   const totalSteps = session.totalSteps || routine.length;
-  const isBreathing = /breath/i.test(step.title);
+  const practiceKind = step.practice?.kind;
+  // Treat as a breathing step if the discriminated payload says so, or — for
+  // pre-refactor user-typed steps — if the title still matches /breath/i.
+  const isBreathing = practiceKind === 'breathing' || (!step.practice && /breath/i.test(step.title));
   const paused = session.status === 'paused';
 
   // Routine time left = remaining in current step + sum of all upcoming steps.
@@ -115,33 +119,55 @@ export default function Player() {
         </div>
       </div>
 
-      {/* Hero: title + countdown */}
-      <div className="relative z-10 flex flex-col items-center px-6 text-center mt-4">
-        <motion.div
-          key={step.id}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex flex-col items-center"
-        >
-          {!isBreathing && (
-            <div className="w-12 h-12 rounded-full bg-night-800/80 border border-night-700 grid place-items-center text-moon-300 mb-3">
-              <StepIcon iconKey={step.icon} size={20} />
-            </div>
-          )}
-          <h1 className="text-xl font-light max-w-xs">{step.title}</h1>
-          <div className="mt-4 text-6xl sm:text-7xl font-light tabular-nums">
+      {/* Hero: switches shape on the practice kind */}
+      {practiceKind === 'shuffle' ? (
+        <div className="relative z-10 flex flex-col items-center px-6 text-center mt-2">
+          <p className="uppercase tracking-[0.3em] text-xs text-moon-300/80 mb-2">
+            {step.title}
+          </p>
+          {/* The rotating word sits in an absolutely-positioned overlay so it
+              stays vertically centered within the hero area. */}
+          <div className="relative w-full h-44 sm:h-56">
+            <ShuffleStep paused={paused} />
+          </div>
+          <div className="text-sm text-night-500 tabular-nums">
             {formatCountdown(remaining)}
           </div>
-        </motion.div>
-
-        <div className="mt-4 w-56 h-1 rounded-full bg-night-700 overflow-hidden">
-          <div
-            className="h-full bg-moon-500 transition-[width] duration-200 ease-linear"
-            style={{ width: `${Math.min(100, pct * 100)}%` }}
-          />
+          <div className="mt-3 w-56 h-1 rounded-full bg-night-700 overflow-hidden">
+            <div
+              className="h-full bg-moon-500 transition-[width] duration-200 ease-linear"
+              style={{ width: `${Math.min(100, pct * 100)}%` }}
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="relative z-10 flex flex-col items-center px-6 text-center mt-4">
+          <motion.div
+            key={step.id}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col items-center"
+          >
+            {!isBreathing && (
+              <div className="w-12 h-12 rounded-full bg-night-800/80 border border-night-700 grid place-items-center text-moon-300 mb-3">
+                <StepIcon iconKey={step.icon} size={20} />
+              </div>
+            )}
+            <h1 className="text-xl font-light max-w-xs">{step.title}</h1>
+            <div className="mt-4 text-6xl sm:text-7xl font-light tabular-nums">
+              {formatCountdown(remaining)}
+            </div>
+          </motion.div>
+
+          <div className="mt-4 w-56 h-1 rounded-full bg-night-700 overflow-hidden">
+            <div
+              className="h-full bg-moon-500 transition-[width] duration-200 ease-linear"
+              style={{ width: `${Math.min(100, pct * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Step checklist */}
       <div className="relative z-10 mt-6 px-5">

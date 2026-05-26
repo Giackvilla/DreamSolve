@@ -18,5 +18,11 @@ export const DEFAULT_ROUTINE: RoutineStep[] = [
   { id: 'r3', title: 'Shower · skincare', minutes: 15, icon: 'bath' },
   { id: 'r4', title: 'Stretch · light yoga', minutes: 10, icon: 'activity' },
   { id: 'r5', title: 'Read or journal', minutes: 10, icon: 'book-open' },
-  { id: 'r6', title: 'Breathing (4-7-8)', minutes: 10, icon: 'wind' },
+  {
+    id: 'r6',
+    title: 'Breathing (4-7-8)',
+    minutes: 10,
+    icon: 'wind',
+    practice: { kind: 'breathing', pattern: '4-7-8' },
+  },
 ];

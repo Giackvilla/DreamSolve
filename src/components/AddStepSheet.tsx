@@ -3,11 +3,13 @@ import { motion } from 'framer-motion';
 import { Plus, X } from 'lucide-react';
 import { ICON_KEYS, ICON_CATALOG, StepIcon, type IconKey } from '@/lib/icons';
 import { SUGGESTED_STEPS } from '@/lib/suggestedSteps';
+import type { Practice } from '@/store/types';
 
 export type NewStepDraft = {
   title: string;
   minutes: number;
   icon: IconKey;
+  practice?: Practice;
 };
 
 /**
@@ -96,7 +98,14 @@ function SuggestedList({ onPick }: { onPick: (s: NewStepDraft) => void }) {
         <li key={s.title}>
           <button
             type="button"
-            onClick={() => onPick({ title: s.title, minutes: s.minutes, icon: s.icon })}
+            onClick={() =>
+              onPick({
+                title: s.title,
+                minutes: s.minutes,
+                icon: s.icon,
+                practice: s.practice,
+              })
+            }
             title={s.why}
             className="w-full text-left rounded-xl px-3 py-2.5 hover:bg-night-700/70 transition flex items-center gap-3"
           >
