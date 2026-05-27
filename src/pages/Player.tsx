@@ -9,7 +9,9 @@ import { useWakeLock } from '@/hooks/useWakeLock';
 import { formatCountdown, nextBedtime } from '@/lib/time';
 import { BreathingCircle } from '@/components/BreathingCircle';
 import { ShuffleStep } from '@/components/ShuffleStep';
+import { InputStep } from '@/components/InputStep';
 import { StepIcon } from '@/lib/icons';
+import { nightOfKey } from '@/lib/time';
 import type { RoutineStep } from '@/store/types';
 
 export default function Player() {
@@ -96,6 +98,7 @@ export default function Player() {
   // Wall-clock minutes-to-bed.
   const bed = useMemo(() => nextBedtime(bedtime, now), [bedtime, now]);
   const minutesToBed = Math.max(0, Math.round((bed.getTime() - now.getTime()) / 60_000));
+  const nightDate = nightOfKey(bed);
 
   return (
     <section className="relative min-h-[100dvh] flex flex-col bg-night-950 text-night-50 overflow-hidden">
@@ -138,6 +141,25 @@ export default function Player() {
               className="h-full bg-moon-500 transition-[width] duration-200 ease-linear"
               style={{ width: `${Math.min(100, pct * 100)}%` }}
             />
+          </div>
+        </div>
+      ) : practiceKind === 'input' && step.practice?.kind === 'input' ? (
+        <div className="relative z-10 flex flex-col items-stretch px-5 mt-2">
+          <InputStep
+            preset={step.practice.preset}
+            nightDate={nightDate}
+            title={step.title}
+          />
+          <div className="mt-3 flex flex-col items-center">
+            <div className="text-sm text-night-500 tabular-nums">
+              {formatCountdown(remaining)}
+            </div>
+            <div className="mt-2 w-56 h-1 rounded-full bg-night-700 overflow-hidden">
+              <div
+                className="h-full bg-moon-500 transition-[width] duration-200 ease-linear"
+                style={{ width: `${Math.min(100, pct * 100)}%` }}
+              />
+            </div>
           </div>
         </div>
       ) : (
@@ -188,10 +210,10 @@ export default function Player() {
                 onTap={() => {
                   if (i === session.stepIndex) {
                     session.advance(); // "check off" current = skip
-                  } else if (i > session.stepIndex) {
-                    session.jumpTo(i); // jump forward to this step
+                  } else {
+                    // Forward = jump-ahead; backward = rewind (re-open with fresh timer).
+                    session.jumpTo(i);
                   }
-                  // completed rows: no-op (one-way timeline)
                 }}
               />
             ))}
@@ -261,25 +283,23 @@ function StepListRow({
   state: RowState;
   onTap: () => void;
 }) {
-  const isTappable = state !== 'completed';
   return (
     <li>
       <button
         type="button"
         onClick={onTap}
-        disabled={!isTappable}
         aria-label={
           state === 'current'
             ? `Mark step ${index + 1} done`
             : state === 'upcoming'
               ? `Jump to step ${index + 1}`
-              : `Step ${index + 1} completed`
+              : `Go back to step ${index + 1}`
         }
         className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition ${
           state === 'current'
             ? 'bg-moon-500/10'
             : state === 'completed'
-              ? 'opacity-50 cursor-default'
+              ? 'opacity-70 hover:opacity-100 hover:bg-night-800/40'
               : 'hover:bg-night-800/60'
         }`}
       >

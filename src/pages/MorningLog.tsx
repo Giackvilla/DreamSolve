@@ -69,28 +69,43 @@ export default function MorningLog() {
         Last night · {formatHuman(lastNight)}
       </p>
 
-      {/* Prompt — only when last night is unlogged */}
-      {!lastNightEntry && (
-        <div className="rounded-2xl bg-night-800/70 border border-night-700 p-5 mb-6">
-          <div className="text-sm mb-3">Did you finish last night's routine?</div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => logNight(lastNight, true)}
-              className="flex-1 flex items-center justify-center gap-2 rounded-full bg-moon-500 text-night-950 py-2.5 font-medium hover:bg-moon-400 transition"
-            >
-              <Check size={16} strokeWidth={2.4} />
-              Yes
-            </button>
-            <button
-              onClick={() => logNight(lastNight, false)}
-              className="flex-1 flex items-center justify-center gap-2 rounded-full bg-night-700 text-night-100 py-2.5 hover:bg-night-600 transition"
-            >
-              <XIcon size={16} />
-              No
-            </button>
-          </div>
+      {/* Prompt — always rendered; both buttons visible so the answer is
+          undoable. The current selection (if any) is highlighted; tapping the
+          other re-logs the night with the new answer. */}
+      <div className="rounded-2xl bg-night-800/70 border border-night-700 p-5 mb-6">
+        <div className="flex items-baseline justify-between mb-3">
+          <div className="text-sm">Did you finish last night's routine?</div>
+          {lastNightEntry && (
+            <div className="text-xs text-night-500">tap to change</div>
+          )}
         </div>
-      )}
+        <div className="flex gap-2">
+          <button
+            onClick={() => logNight(lastNight, true)}
+            aria-pressed={lastNightEntry?.completed === true}
+            className={`flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 font-medium transition ${
+              lastNightEntry?.completed === true
+                ? 'bg-moon-500 text-night-950 hover:bg-moon-400'
+                : 'bg-night-700 text-night-100 hover:bg-night-600'
+            }`}
+          >
+            <Check size={16} strokeWidth={2.4} />
+            Yes
+          </button>
+          <button
+            onClick={() => logNight(lastNight, false)}
+            aria-pressed={lastNightEntry?.completed === false}
+            className={`flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 transition ${
+              lastNightEntry?.completed === false
+                ? 'bg-ember-500/80 text-night-950 font-medium hover:bg-ember-400'
+                : 'bg-night-700 text-night-100 hover:bg-night-600'
+            }`}
+          >
+            <XIcon size={16} />
+            No
+          </button>
+        </div>
+      </div>
 
       {/* Streak headline */}
       <div className="rounded-2xl bg-night-800/70 border border-night-700 p-6 text-center mb-6">

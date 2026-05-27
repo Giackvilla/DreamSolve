@@ -80,19 +80,23 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   },
 
   /**
-   * Jump forward to `targetIndex`. Going backwards is a no-op in v1 — the
-   * timeline is one-way; if you want to "redo" a step, just restart the
-   * session. `targetIndex >= totalSteps` completes the session.
+   * Jump to `targetIndex`. The timeline is two-way now:
+   *  - Forward: intermediate steps become "completed" (visually, by index).
+   *  - Backward: re-opens an earlier step with a fresh timer; subsequent
+   *    steps revert to "upcoming" because they sit after the new stepIndex.
+   * `targetIndex >= totalSteps` completes the session.
+   * `targetIndex < 0` clamps to 0.
    */
   jumpTo: (targetIndex) => {
     const s = get();
-    if (targetIndex <= s.stepIndex) return;
+    if (targetIndex === s.stepIndex) return;
     if (targetIndex >= s.totalSteps) {
       set({ status: 'completed' });
       return;
     }
+    const clamped = Math.max(0, targetIndex);
     set({
-      stepIndex: targetIndex,
+      stepIndex: clamped,
       stepStartedAt: Date.now(),
       pausedAt: null,
       accumulatedPauseMs: 0,
