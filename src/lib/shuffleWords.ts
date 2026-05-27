@@ -54,7 +54,7 @@ export const SHUFFLE_WORDS: readonly string[] = [
   'velvet', 'linen', 'cotton', 'silk', 'wool', 'cashmere', 'denim', 'corduroy',
   'leather', 'flannel', 'gauze',
   // shapes · misc
-  'spiral', 'lattice', 'crescent', 'circle', 'triangle', 'square',
+  'spiral', 'lattice', 'circle', 'triangle', 'square',
   'oval', 'mosaic', 'tile', 'brick', 'cobblestone', 'pebbled',
   // gentle scenes
   'library', 'bookstore', 'bakery', 'pottery', 'workshop', 'studio',

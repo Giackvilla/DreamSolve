@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { pickWord } from '@/lib/shuffleWords';
 
 /**
@@ -38,19 +38,19 @@ export function ShuffleStep({
       aria-live="polite"
       className="pointer-events-none absolute inset-0 flex items-center justify-center"
     >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={word}
-          initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reducedMotion ? { opacity: 1 } : { opacity: 0, y: -6 }}
-          transition={{ duration: reducedMotion ? 0 : 1.2, ease: 'easeOut' }}
-          className="text-5xl sm:text-6xl font-light tracking-wide text-moon-100 select-none"
-          style={{ textShadow: '0 0 24px rgba(139,92,246,0.25)' }}
-        >
-          {word}
-        </motion.div>
-      </AnimatePresence>
+      {/* Keyed enter-only animation. We deliberately don't use AnimatePresence
+          mode="wait" — if interval is ever shortened the exit animation can
+          jam (same bug I hit on the step transitions in the player). */}
+      <motion.div
+        key={word}
+        initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: reducedMotion ? 0 : 0.6, ease: 'easeOut' }}
+        className="text-5xl sm:text-6xl font-light tracking-wide text-moon-100 select-none"
+        style={{ textShadow: '0 0 24px rgba(139,92,246,0.25)' }}
+      >
+        {word}
+      </motion.div>
     </div>
   );
 }

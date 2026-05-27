@@ -1,49 +1,28 @@
 import { useMemo } from 'react';
 import { Check, X as XIcon } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { isoDateDaysAgo, toLocalISO } from '@/lib/time';
 
-/** Returns the ISO date (YYYY-MM-DD) for *last night* in the local timezone. */
-function lastNightKey(now: Date = new Date()): string {
-  // The "night of" date is the calendar date the user *went to bed*. Anything
-  // before noon today, we assume the user is logging last night. After noon,
-  // it's still last night until the next sleep cycle — same key holds.
-  const target = new Date(now);
-  target.setDate(target.getDate() - 1);
-  const y = target.getFullYear();
-  const m = String(target.getMonth() + 1).padStart(2, '0');
-  const d = String(target.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function isoDateDaysAgo(days: number, now = new Date()): string {
-  const t = new Date(now);
-  t.setDate(t.getDate() - days);
-  const y = t.getFullYear();
-  const m = String(t.getMonth() + 1).padStart(2, '0');
-  const d = String(t.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
+// "Last night" = the calendar date the user went to bed yesterday.
+// The same key holds all of today, so morning-coffee logging and evening
+// "did I tap that?" check both land on the same entry.
 
 export default function MorningLog() {
   const log = useAppStore((s) => s.log);
   const logNight = useAppStore((s) => s.logNight);
 
-  const lastNight = lastNightKey();
+  const lastNight = isoDateDaysAgo(1);
   const lastNightEntry = log.find((e) => e.date === lastNight);
 
   const streak = useMemo(() => {
     let count = 0;
-    let cursor = new Date();
+    const cursor = new Date();
     cursor.setDate(cursor.getDate() - 1);
     while (true) {
-      const key = isoDateDaysAgo(0, cursor);
-      const entry = log.find((e) => e.date === key);
-      if (entry?.completed) {
-        count++;
-        cursor.setDate(cursor.getDate() - 1);
-      } else {
-        break;
-      }
+      const entry = log.find((e) => e.date === toLocalISO(cursor));
+      if (!entry?.completed) break;
+      count++;
+      cursor.setDate(cursor.getDate() - 1);
     }
     return count;
   }, [log]);

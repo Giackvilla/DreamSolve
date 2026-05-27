@@ -5,7 +5,7 @@ import { create } from 'zustand';
  * Time math is derived from Date.now() each tick, so backgrounding the tab
  * doesn't lose time.
  */
-export type SessionStatus = 'idle' | 'playing' | 'paused' | 'completed';
+type SessionStatus = 'idle' | 'playing' | 'paused' | 'completed';
 
 type SessionState = {
   status: SessionStatus;
@@ -22,7 +22,6 @@ type SessionState = {
   skip: () => void;
   advance: () => void;
   jumpTo: (targetIndex: number) => void;
-  complete: () => void;
   reset: () => void;
 };
 
@@ -103,8 +102,6 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       status: 'playing',
     });
   },
-
-  complete: () => set({ status: 'completed' }),
 
   reset: () =>
     set({

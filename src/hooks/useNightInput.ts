@@ -27,6 +27,12 @@ export function useNightInput<T>(
 
   useEffect(() => {
     let cancelled = false;
+    // Reset state when the key changes so stale data from the previous night
+    // doesn't leak into a fresh form. (Edge case: a long-running session that
+    // crosses bedtime — `nightOfKey(nextBedtime(now))` flips dates and the
+    // key changes.)
+    setLoaded(false);
+    setValueState(initial);
     get<T>(key).then((stored) => {
       if (cancelled) return;
       if (stored !== undefined) setValueState(stored);
@@ -35,6 +41,11 @@ export function useNightInput<T>(
     return () => {
       cancelled = true;
     };
+    // `initial` intentionally omitted — callers pass a fresh literal each
+    // render, so depending on it would cause an infinite reset loop. The
+    // initial used here is the one that was passed when the key changed,
+    // which is the right behavior.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   const setValue = (next: T) => {

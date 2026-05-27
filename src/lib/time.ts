@@ -3,8 +3,8 @@
  * so timers survive tab backgrounding.
  */
 
-/** Parse "HH:mm" into [hours, minutes]. */
-export function parseHHMM(hhmm: string): [number, number] {
+/** Parse "HH:mm" into [hours, minutes]. Internal helper. */
+function parseHHMM(hhmm: string): [number, number] {
   const [h, m] = hhmm.split(':').map(Number);
   return [h ?? 0, m ?? 0];
 }
@@ -41,10 +41,22 @@ export function formatCountdown(ms: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-/** ISO date string for the *night-of* — uses local date of the bedtime. */
+/** Format a Date as a YYYY-MM-DD string in the local timezone. */
+export function toLocalISO(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** ISO date string for the *night-of* — uses the local date of the bedtime. */
 export function nightOfKey(bedtime: Date): string {
-  const y = bedtime.getFullYear();
-  const m = String(bedtime.getMonth() + 1).padStart(2, '0');
-  const d = String(bedtime.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  return toLocalISO(bedtime);
+}
+
+/** Returns the local YYYY-MM-DD for `daysAgo` days before `from` (default now). */
+export function isoDateDaysAgo(daysAgo: number, from: Date = new Date()): string {
+  const t = new Date(from);
+  t.setDate(t.getDate() - daysAgo);
+  return toLocalISO(t);
 }

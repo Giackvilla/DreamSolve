@@ -16,8 +16,6 @@ export type RoutineStep = {
   practice?: Practice;
 };
 
-export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
-
 export type BedtimeSettings = {
   /** HH:mm — default bedtime applied when no per-day override is set. */
   defaultBedtime: string;
