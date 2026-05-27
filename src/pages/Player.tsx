@@ -102,7 +102,14 @@ export default function Player() {
 
   return (
     <section className="relative min-h-[100dvh] flex flex-col bg-night-950 text-night-50 overflow-hidden">
-      {isBreathing && <BreathingCircle paused={paused} />}
+      {isBreathing && (
+        <BreathingCircle
+          paused={paused}
+          pattern={
+            step.practice?.kind === 'breathing' ? step.practice.pattern : '4-7-8'
+          }
+        />
+      )}
 
       {/* Top bar */}
       <div
