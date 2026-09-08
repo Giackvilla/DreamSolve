@@ -2,7 +2,7 @@
 
 A sleep-first PWA. Set your bedtime; one hour before, DreamSolve guides you through your personalized wind-down routine. That's it — every feature serves those two things.
 
-> Live: **https://dreamsolve-dun.vercel.app** · Private repo · Single-user, personal-use app.
+> Live: **https://dreamsolve-dun.vercel.app** · Single-user, personal-use app.
 
 ## The idea
 
@@ -80,3 +80,7 @@ Vite · React 18 · TypeScript · Tailwind · Zustand · React Router · Framer 
 - [RESEARCH.md](RESEARCH.md) — initial competitive landscape, MVP cut, tech-stack rationale (v1).
 - [RESEARCH-P2-P3.md](RESEARCH-P2-P3.md) — survey of open-source repos (Breathly, HeyLinda, ai-pomo-free, StayAwake) and locked decisions for the player.
 - [FUTURE.md](FUTURE.md) — v2 roadmap, Whoop integration plan, explicit rejections.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
